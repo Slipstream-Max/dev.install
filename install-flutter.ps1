@@ -66,7 +66,7 @@ $TempZip = Join-Path $env:TEMP $ZipName
 try {
     # 如果已经下载过，可以考虑校验或重新下载
     Write-Host "  下载链接: $DownloadUrl"
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZip -ErrorAction Stop
+    Download-File -Url $DownloadUrl -OutFile $TempZip
     Write-Host "  下载完成" -ForegroundColor Green
 } catch {
     Write-Error "下载失败: $_"

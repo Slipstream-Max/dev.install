@@ -63,7 +63,7 @@ Write-Host "[2/3] 下载 $AppName ($Arch)..."
 $TempExe = Join-Path $env:TEMP $ExeName
 
 try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempExe -ErrorAction Stop
+    Download-File -Url $DownloadUrl -OutFile $TempExe
     Write-Host "  下载完成" -ForegroundColor Green
 } catch {
     Write-Error "下载失败: $_"

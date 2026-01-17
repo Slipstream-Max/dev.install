@@ -61,7 +61,7 @@ if (-not (Test-Path $InstallDir)) {
 Write-Host "[2/4] 下载 $ZipName..."
 $TempZip = Join-Path $env:TEMP $ZipName
 try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZip -ErrorAction Stop
+    Download-File -Url $DownloadUrl -OutFile $TempZip
     Write-Host "  下载完成" -ForegroundColor Green
 } catch {
     Write-Error "下载失败: $_"

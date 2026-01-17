@@ -27,3 +27,26 @@ function Set-EnvVar {
     Write-Host "已设置: $Name = $Value" -ForegroundColor Green
 }
 
+function Download-File {
+    <#
+    .SYNOPSIS
+        使用 BITS 下载文件（后台智能传输服务，支持断点续传）
+    
+    .PARAMETER Url
+        下载链接
+    
+    .PARAMETER OutFile
+        输出文件路径
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Url,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$OutFile
+    )
+    
+    Start-BitsTransfer -Source $Url -Destination $OutFile -Description "Downloading..." -ErrorAction Stop
+}
+
+

@@ -19,16 +19,18 @@ if (-not (Test-Path $BaseInstallDir)) {
 }
 
 # 2. 定义软件列表
-# Format: @{ Script="filename.ps1"; SubDir="DirectoryName" }
+# Format: @{ Script="filename.ps1"; SubDir="DirectoryName"; NoInstallDir=$false }
+# NoInstallDir: 设为 $true 表示该脚本不接受 -InstallDir 参数
 $Tools = @(
-    @{ Name="Node.js";              Script="install-node.ps1";            SubDir="nodejs" },
-    @{ Name="uv";                   Script="install-uv.ps1";              SubDir="uv" },
-    @{ Name="Rust";                 Script="install-rust.ps1";            SubDir="Rust" },
-    @{ Name="Git for Windows";      Script="install-git.ps1";             SubDir="Git" },
-    @{ Name="VS Code Insiders";     Script="install-vscode-insiders.ps1"; SubDir="VSCodeInsiders" },
-    @{ Name="VS Build Tools";       Script="install-vs-build-tools.ps1";  SubDir="VSBuildTools" },
-    @{ Name="Antigravity";          Script="install-antigravity.ps1";     SubDir="Antigravity" },
-    @{ Name="Flutter";              Script="install-flutter.ps1";         SubDir="flutter" }
+    @{ Name="Node.js";              Script="install-node.ps1";            SubDir="nodejs";         NoInstallDir=$false },
+    @{ Name="uv";                   Script="install-uv.ps1";              SubDir="uv";             NoInstallDir=$false },
+    @{ Name="Rust";                 Script="install-rust.ps1";            SubDir="Rust";           NoInstallDir=$false },
+    @{ Name="Git for Windows";      Script="install-git.ps1";             SubDir="Git";            NoInstallDir=$false },
+    @{ Name="GitHub Desktop";       Script="install-github-desktop.ps1";  SubDir="";               NoInstallDir=$true  },
+    @{ Name="VS Code Insiders";     Script="install-vscode-insiders.ps1"; SubDir="VSCodeInsiders"; NoInstallDir=$false },
+    @{ Name="VS Build Tools";       Script="install-vs-build-tools.ps1";  SubDir="VSBuildTools";   NoInstallDir=$false },
+    @{ Name="Antigravity";          Script="install-antigravity.ps1";     SubDir="Antigravity";    NoInstallDir=$false },
+    @{ Name="Flutter";              Script="install-flutter.ps1";         SubDir="flutter";        NoInstallDir=$false }
 )
 
 # 3. 运行通用安装脚本
@@ -37,13 +39,20 @@ foreach ($Tool in $Tools) {
     $ScriptPath = Join-Path $PSScriptRoot $ScriptName
     
     if (Test-Path $ScriptPath) {
-        $InstallPath = Join-Path $BaseInstallDir $Tool.SubDir
         Write-Host "`n------------------------------------------------------------" -ForegroundColor Cyan
         Write-Host "正在调用 $ScriptName 安装 $($Tool.Name)..." -ForegroundColor Cyan
-        Write-Host "目标路径: $InstallPath" -ForegroundColor Gray
         
         try {
-            & $ScriptPath -InstallDir $InstallPath
+            if ($Tool.NoInstallDir) {
+                # 不传递 -InstallDir 参数
+                Write-Host "目标路径: 使用默认路径" -ForegroundColor Gray
+                & $ScriptPath
+            } else {
+                # 传递 -InstallDir 参数
+                $InstallPath = Join-Path $BaseInstallDir $Tool.SubDir
+                Write-Host "目标路径: $InstallPath" -ForegroundColor Gray
+                & $ScriptPath -InstallDir $InstallPath
+            }
         } catch {
             Write-Error "$($Tool.Name) 安装失败: $_"
         }
