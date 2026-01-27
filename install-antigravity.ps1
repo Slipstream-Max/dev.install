@@ -24,9 +24,7 @@ $ArchSuffix = if ([Environment]::Is64BitOperatingSystem) {
     exit 1
 }
 
-# 注意：页面内容由 JS 动态渲染，无法直接抓取 API。
-# 这里使用已知的稳定版本链接 (v1.13.3-4533425205018624)
-$Version = "1.13.3-4533425205018624"
+$Version = "1.15.8-5724687216017408"
 $DownloadUrl = "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/$Version/$ArchSuffix/Antigravity.exe"
 $ExeName = "AntigravityInstaller.exe"
 

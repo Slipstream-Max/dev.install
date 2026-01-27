@@ -29,6 +29,7 @@ $Tools = @(
     @{ Name="GitHub Desktop";       Script="install-github-desktop.ps1";  SubDir="";               NoInstallDir=$true  },
     @{ Name="VS Code Insiders";     Script="install-vscode-insiders.ps1"; SubDir="VSCodeInsiders"; NoInstallDir=$false },
     @{ Name="VS Build Tools";       Script="install-vs-build-tools.ps1";  SubDir="VSBuildTools";   NoInstallDir=$false },
+    @{ Name="Microsoft JDK 21";     Script="install-jdk21.ps1";             SubDir="MicrosoftJDK21"; NoInstallDir=$false },
     @{ Name="Antigravity";          Script="install-antigravity.ps1";     SubDir="Antigravity";    NoInstallDir=$false },
     @{ Name="Flutter";              Script="install-flutter.ps1";         SubDir="flutter";        NoInstallDir=$false }
 )
