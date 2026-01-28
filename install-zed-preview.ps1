@@ -15,6 +15,9 @@ $InformationPreference = 'Continue'
 # ============ 配置 ============
 $AppName = "Zed Preview"
 
+# Zed 用户配置文件（固定路径）
+$ZedSettingsPath = Join-Path $env:APPDATA "Zed\settings.json"
+
 # 检测架构并确定下载 URL
 $Arch = if ([Environment]::Is64BitOperatingSystem)
 {
@@ -71,11 +74,6 @@ Write-Host "[3/4] 运行安装程序..."
 try
 {
     # Zed 安装程序参数（Inno Setup）
-    # /VERYSILENT: 静默安装
-    # /SUPPRESSMSGBOXES: 抑制消息框
-    # /NORESTART: 安装后不重启
-    # /DIR: 指定安装目录
-    # /LOG: 输出安装日志（写入 TEMP 目录）
     $ArgList = "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$InstallDir`"", "/MERGETASKS=`"!addtopath,!runcode`""
 
     Write-Host "  等待安装完成..."
@@ -104,11 +102,46 @@ if (Test-Path $BinPath)
     Add-PathSafely -NewPath $BinPath
 }
 
+# 5. 同步 Zed 配置文件并联动 JDK 路径
+Write-Host "[4/4] 同步 Zed 配置文件..."
+$RepoSettingsPath = Join-Path $PSScriptRoot "zed\settings.json"
+
+if (Test-Path $RepoSettingsPath)
+{
+    $ZedSettingsDir = Split-Path -Parent $ZedSettingsPath
+    if (-not (Test-Path $ZedSettingsDir))
+    {
+        New-Item -ItemType Directory -Path $ZedSettingsDir -Force | Out-Null
+    }
+
+    # 动态拼接 JDK 路径：假设 JDK 与 Zed 安装在同一个父目录下
+    # 例如：InstallDir 是 D:\Programs\ZedPreview -> BaseDir 是 D:\Programs -> JdkPath 是 D:\Programs\MicrosoftJDK21
+    $BaseDir = Split-Path -Parent $InstallDir
+    $JdkPath = Join-Path $BaseDir "MicrosoftJDK21"
+
+    Write-Host "  正在根据安装目录联动 JDK 路径: $JdkPath" -ForegroundColor Gray
+
+    # 统一路径分隔符为正斜杠，Zed 配置文件兼容性更好
+    $NormalizedJdkPath = $JdkPath.Replace('\', '/')
+
+    $Content = Get-Content -Path $RepoSettingsPath -Raw
+    # 替换 jdtls 中的 java_home
+    $Content = $Content -replace '("jdtls":\s*\{\s*"settings":\s*\{\s*"java_home":\s*")[^"]*', ('${1}' + $NormalizedJdkPath)
+    # 替换 kotlin-language-server 中的 JAVA_HOME
+    $Content = $Content -replace '("JAVA_HOME":\s*")[^"]*', ('${1}' + $NormalizedJdkPath)
+
+    $Content | Set-Content -Path $ZedSettingsPath -Encoding UTF8
+    Write-Host "  配置文件已同步并自动指向 JDK 路径" -ForegroundColor Green
+} else
+{
+    Write-Warning "  未找到仓库配置文件，已跳过: $RepoSettingsPath"
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  $AppName 安装完成！" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "安装位置: $InstallDir"
-Write-Host "架构: $Arch"
+Write-Host "Zed 配置路径: $ZedSettingsPath"
 Write-Host "请重新打开终端以使用 'zed' 命令" -ForegroundColor Yellow
