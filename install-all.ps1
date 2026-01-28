@@ -31,18 +31,19 @@ $Tools = @(
     @{ Name="VS Build Tools";       Script="install-vs-build-tools.ps1";  SubDir="VSBuildTools";   NoInstallDir=$false },
     @{ Name="Microsoft JDK 21";     Script="install-jdk21.ps1";             SubDir="MicrosoftJDK21"; NoInstallDir=$false },
     @{ Name="Antigravity";          Script="install-antigravity.ps1";     SubDir="Antigravity";    NoInstallDir=$false },
-    @{ Name="Flutter";              Script="install-flutter.ps1";         SubDir="flutter";        NoInstallDir=$false }
+    @{ Name="Flutter";              Script="install-flutter.ps1";         SubDir="flutter";        NoInstallDir=$false },
+    @{ Name="Zed Preview";          Script="install-zed-preview.ps1";     SubDir="ZedPreview";     NoInstallDir=$false }
 )
 
 # 3. 运行通用安装脚本
 foreach ($Tool in $Tools) {
     $ScriptName = $Tool.Script
     $ScriptPath = Join-Path $PSScriptRoot $ScriptName
-    
+
     if (Test-Path $ScriptPath) {
         Write-Host "`n------------------------------------------------------------" -ForegroundColor Cyan
         Write-Host "正在调用 $ScriptName 安装 $($Tool.Name)..." -ForegroundColor Cyan
-        
+
         try {
             if ($Tool.NoInstallDir) {
                 # 不传递 -InstallDir 参数

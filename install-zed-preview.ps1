@@ -1,28 +1,27 @@
 <#
 .SYNOPSIS
-    Antigravity 安装脚本
-    自动从 antigravity.google/download 页面解析最新版下载链接
+    Zed Preview 安装脚本
 
 .PARAMETER InstallDir
-    安装目录（Antigravity 通常安装到 %LOCALAPPDATA%\Antigravity，此参数可能仅用作下载缓存或静默安装的目标）
+    安装目录（默认 D:\Programs\ZedPreview）
 #>
 param(
-    [string]$InstallDir = "D:\Programs\Antigravity"
+    [string]$InstallDir = "D:\Programs\ZedPreview"
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
 # ============ 配置 ============
-$AppName = "Antigravity"
+$AppName = "Zed Preview"
 
-# 检测架构
-$ArchSuffix = if ([Environment]::Is64BitOperatingSystem)
+# 检测架构并确定下载 URL
+$Arch = if ([Environment]::Is64BitOperatingSystem)
 {
     if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64')
-    { "windows-arm64"
+    { "aarch64"
     } else
-    { "windows-x64"
+    { "x86_64"
     }
 } else
 {
@@ -30,9 +29,8 @@ $ArchSuffix = if ([Environment]::Is64BitOperatingSystem)
     exit 1
 }
 
-$Version = "1.15.8-5724687216017408"
-$DownloadUrl = "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/$Version/$ArchSuffix/Antigravity.exe"
-$ExeName = "AntigravityInstaller.exe"
+$DownloadUrl = "https://zed.dev/api/releases/preview/latest/Zed-$Arch.exe"
+$ExeName = "Zed-$Arch.exe"
 
 # ============ 引入工具函数 ============
 if (Test-Path "$PSScriptRoot\utils.ps1")
@@ -48,14 +46,15 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 1. 创建安装目录
-Write-Host "[1/3] 准备安装目录..."
+Write-Host "[1/4] 准备安装目录..."
 if (-not (Test-Path $InstallDir))
 {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }
+Write-Host "  安装目录: $InstallDir" -ForegroundColor Green
 
 # 2. 下载
-Write-Host "[2/3] 下载 $AppName..."
+Write-Host "[2/4] 下载 $AppName ($Arch)..."
 $TempExe = Join-Path $env:TEMP $ExeName
 try
 {
@@ -68,17 +67,16 @@ try
 }
 
 # 3. 运行安装程序
-Write-Host "[3/3] 运行安装程序..."
+Write-Host "[3/4] 运行安装程序..."
 try
 {
-    # /Verysilent: 静默安装
-    # /SuppressMsgBoxes: 抑制消息框
-    # /NoRestart: 安装后不重启
-    # /Dir: 指定安装目录
-    # /MERGETASKS: 禁用程序自带的 PATH 修改和自动启动
-    #   !addtopath: 不添加到 PATH（由本脚本统一处理）
-    #   !runcode: 安装完成后不自动启动 VS Code
-    $ArgList = "/Verysilent", "/SuppressMsgBoxes", "/NoRestart", "/Dir=`"$InstallDir`"", "/MERGETASKS=`"!addtopath,!runcode`""
+    # Zed 安装程序参数（Inno Setup）
+    # /VERYSILENT: 静默安装
+    # /SUPPRESSMSGBOXES: 抑制消息框
+    # /NORESTART: 安装后不重启
+    # /DIR: 指定安装目录
+    # /LOG: 输出安装日志（写入 TEMP 目录）
+    $ArgList = "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$InstallDir`"", "/MERGETASKS=`"!addtopath,!runcode`""
 
     Write-Host "  等待安装完成..."
     $process = Start-Process -FilePath $TempExe -ArgumentList $ArgList -Wait -PassThru -NoNewWindow
@@ -112,4 +110,5 @@ Write-Host "  $AppName 安装完成！" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "安装位置: $InstallDir"
-Write-Host "请重新打开终端以使用 'antigravity' 命令" -ForegroundColor Yellow
+Write-Host "架构: $Arch"
+Write-Host "请重新打开终端以使用 'zed' 命令" -ForegroundColor Yellow
