@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Git for Windows 安装脚本
 

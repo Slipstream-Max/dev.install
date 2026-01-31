@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Visual Studio Build Tools 安装脚本
     主要用于为 Rust 和 C++ 开发提供最新的 MSVC 编译器和 Windows SDK

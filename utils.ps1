@@ -1,4 +1,4 @@
-function Add-PathSafely
+﻿function Add-PathSafely
 {
     param([string]$NewPath)
 

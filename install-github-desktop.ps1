@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     GitHub Desktop 安装脚本
 

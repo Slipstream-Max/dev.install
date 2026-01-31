@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Android SDK 命令行工具安装脚本 (不含 Android Studio)
 

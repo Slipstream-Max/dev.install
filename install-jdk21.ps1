@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Microsoft JDK 21 安装脚本
 
@@ -11,6 +11,60 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
+
+# ============ 自动提权（管理员）===========
+# MSI 的 /qn 静默安装通常需要管理员权限；非管理员运行时会导致 1603 等错误。
+$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator
+)
+
+if (-not $IsAdmin)
+{
+    Write-Host "需要管理员权限才能进行静默安装。" -ForegroundColor Yellow
+    Write-Host "将打开一个新的【管理员】PowerShell 窗口来运行脚本，你可以在那个窗口看到输出与进度。" -ForegroundColor Yellow
+
+    $choice = Read-Host "是否现在提权运行？(Y/N)"
+    if ($choice -notin @('Y','y','Yes','yes'))
+    {
+        Write-Host "已取消。你也可以右键 PowerShell -> 以管理员身份运行，再执行此脚本。" -ForegroundColor Yellow
+        exit 1
+    }
+
+    $ScriptPath = if ($PSCommandPath) { $PSCommandPath } else { $MyInvocation.MyCommand.Path }
+    if (-not $ScriptPath)
+    {
+        Write-Error "无法获取脚本路径，无法自动提权。请以管理员身份运行此脚本。"
+        exit 1
+    }
+
+    $ArgList = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "`"$ScriptPath`"",
+        "-InstallDir", "`"$InstallDir`""
+    )
+
+    try
+    {
+        # 用 Windows PowerShell 打开可见窗口，且 -NoExit 避免执行完就闪退
+        $ShellExe = "powershell.exe"
+        $ArgList = @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-NoExit",
+            "-File", "`"$ScriptPath`"",
+            "-InstallDir", "`"$InstallDir`""
+        )
+
+        Start-Process -FilePath $ShellExe -ArgumentList $ArgList -Verb RunAs -WindowStyle Normal | Out-Null
+        Write-Host "已启动管理员窗口。请切换到新窗口查看安装进度。" -ForegroundColor Green
+        exit 0
+    } catch
+    {
+        Write-Error "提权失败或被取消: $_"
+        exit 1
+    }
+}
 
 # ============ 配置 ============
 $AppName = "Microsoft JDK 21"

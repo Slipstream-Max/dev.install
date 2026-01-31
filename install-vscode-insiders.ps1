@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     VS Code Insiders 安装脚本
 

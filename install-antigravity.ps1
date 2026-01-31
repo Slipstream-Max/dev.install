@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Antigravity 安装脚本
     自动从 antigravity.google/download 页面解析最新版下载链接

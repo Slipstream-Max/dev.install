@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Zed Preview 安装脚本
 

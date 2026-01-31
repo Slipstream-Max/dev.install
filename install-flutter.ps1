@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Flutter SDK 安装脚本
 

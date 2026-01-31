@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     一键安装所有开发工具
     Orchestrator script to install all tools in their own subdirectories under a base directory.

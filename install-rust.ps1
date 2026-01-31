@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Rust (rustup) 安装脚本
 
