@@ -11,30 +11,15 @@ $InformationPreference = 'Continue'
 
 # ============ 配置 ============
 $AppName = "GitHub Desktop"
-$RepoUrl = "https://api.github.com/repos/desktop/desktop/releases/latest"
+$ReleasesUrl = "https://api.github.com/repos/desktop/desktop/releases"
 
-# 1. 动态获取最新版本号
-Write-Host "[1/4] 正在获取最新版本信息..."
-try
-{
-    $LatestRelease = Invoke-RestMethod -Uri $RepoUrl
-    $Tag = $LatestRelease.tag_name # 例如 release-3.5.5 或 release-3.5.5-beta1
-    $Version = $Tag -replace '^release-', '' # 3.5.5 或 3.5.5-beta1
-    Write-Host "  最新版本: $Version" -ForegroundColor Green
-} catch
-{
-    Write-Error "获取最新版本失败: $_"
-    exit 1
-}
-
-# 2. 检测架构并确定下载 URL
+# 1. 检测架构
 $Arch = if ([Environment]::Is64BitOperatingSystem)
 {
     if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64')
-    { "arm64" 
-    } else
-    { "x64" 
-    }
+    { "arm64" }
+    else
+    { "x64" }
 } else
 {
     Write-Error "不支持 32 位系统"
@@ -42,7 +27,45 @@ $Arch = if ([Environment]::Is64BitOperatingSystem)
 }
 
 $ExeName = "GitHubDesktopSetup-$Arch.exe"
-$DownloadUrl = "https://github.com/desktop/desktop/releases/download/$Tag/$ExeName"
+
+# 2. 从 prerelease 列表中查找包含目标资产的最新版本
+Write-Host "[1/4] 正在获取最新版本信息..."
+try
+{
+    $Releases = Invoke-RestMethod -Uri $ReleasesUrl
+    $TargetRelease = $null
+    $TargetAsset = $null
+
+    foreach ($release in $Releases)
+    {
+        if ($release.prerelease -eq $true)
+        {
+            $asset = $release.assets | Where-Object { $_.name -eq $ExeName }
+            if ($asset)
+            {
+                $TargetRelease = $release
+                $TargetAsset = $asset
+                break
+            }
+        }
+    }
+
+    if (-not $TargetRelease -or -not $TargetAsset)
+    {
+        Write-Error "未在 prerelease 的 assets 中找到 $ExeName"
+        exit 1
+    }
+
+    $Tag = $TargetRelease.tag_name
+    $Version = $Tag -replace '^release-', ''
+    $DownloadUrl = $TargetAsset.browser_download_url
+
+    Write-Host "  最新版本: $Version (prerelease)" -ForegroundColor Green
+} catch
+{
+    Write-Error "获取最新版本失败: $_"
+    exit 1
+}
 
 # ============ 引入工具函数 ============
 if (Test-Path "$PSScriptRoot\utils.ps1")
